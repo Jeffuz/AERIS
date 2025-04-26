@@ -4,7 +4,9 @@ interface MapProps {
   }
 const Map = ({className}: MapProps) => {
   return (
-    <section className={className}>Map</section>
+    <section className={className}>
+      
+    </section>
   )
 }
 

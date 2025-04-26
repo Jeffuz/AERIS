@@ -152,7 +152,7 @@ const DroneStatus = ({ className }: DroneStatusProps) => {
   const activeDrones = mockDrones.filter((drone) => drone.isActive).length;
 
   return (
-    <section className={`${className} p-4 border-gray-800 border-r`}>
+    <section className={`${className} flex flex-col p-4 border-gray-800 border-r h-full`}>
       {/* Header */}
       <div className="flex justify-between items-center pb-4">
         <h3 className="text-lg font-medium text-white/70">Drone Fleet Status</h3>
@@ -161,18 +161,20 @@ const DroneStatus = ({ className }: DroneStatusProps) => {
         </div>
       </div>
 
-      <div className="space-y-3">
-        {mockDrones.map((drone) => (
-          <DroneStatusCard
-            key={drone.id}
-            id={drone.id}
-            batteryLevel={drone.batteryLevel}
-            isActive={drone.isActive}
-            altitude={drone.altitude}
-            speed={drone.speed}
-            status={drone.status}
-          />
-        ))}
+      <div className="flex-1 min-h-0 h-full overflow-y-auto">
+        <div className="space-y-3">
+          {mockDrones.map((drone) => (
+            <DroneStatusCard
+              key={drone.id}
+              id={drone.id}
+              batteryLevel={drone.batteryLevel}
+              isActive={drone.isActive}
+              altitude={drone.altitude}
+              speed={drone.speed}
+              status={drone.status}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
