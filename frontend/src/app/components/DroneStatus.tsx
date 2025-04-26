@@ -68,17 +68,15 @@ function DroneStatusCard({
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <button
-                className="flex items-center gap-2 bg-[#1F1F22] rounded-md py-2 px-4 text-sm font-medium text-white hover:bg-[#1F1F22]/80 transition-colors cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <Eye className="w-4 h-4" />
-                Camera Feed
-              </button>
-            </div>
+            <button
+              className="w-full flex justify-center items-center gap-2 bg-[#1F1F22] rounded-md py-2 px-4 text-sm font-medium text-white hover:bg-[#1F1F22]/80 transition-colors cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <Eye className="w-4 h-4" />
+              Camera Feed
+            </button>
           </div>
         )}
       </div>
@@ -92,7 +90,14 @@ interface DroneStatusProps {
 
 const DroneStatus = ({ className }: DroneStatusProps) => {
   return (
-    <section className={className}>
+    <section className={`${className} p-4`}>
+      {/* Header */}
+      <div className="flex justify-between items-center pb-4">
+        <h3 className="text-lg font-medium text-white/70">Drone Fleet Status</h3>
+        <div className="text-md text-white/70">
+          4/7 active
+        </div>
+      </div>
       <DroneStatusCard
         id="D2"
         batteryLevel={45}
