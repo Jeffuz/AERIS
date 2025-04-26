@@ -9,10 +9,10 @@ export default function Home() {
     <div className="flex flex-col h-screen bg-[#18181B]">
       <Navbar/>
       <NotificationBar/>
-      <main className="flex flex-row">
-        <DroneStatus />
-        <Triage/>
-        <Map />
+      <main className="grid grid-cols-4 flex-1">
+        <DroneStatus className="col-span-1" />
+        <Map className="col-span-2" />
+        <Triage className="col-span-1" />
       </main>
     </div>
   );

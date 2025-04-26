@@ -1,8 +1,10 @@
 import React from 'react'
-
-const Map = () => {
+interface MapProps {
+    className?: string;
+  }
+const Map = ({className}: MapProps) => {
   return (
-    <section>Map</section>
+    <section className={className}>Map</section>
   )
 }
 

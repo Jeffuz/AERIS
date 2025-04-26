@@ -1,8 +1,12 @@
 import React from 'react'
 
-const DroneStatus = () => {
+interface DroneStatusProps {
+    className?: string;
+  }
+
+const DroneStatus = ({className}: DroneStatusProps) => {
   return (
-    <section>DroneStatus</section>
+    <section className={className}>DroneStatus</section>
   )
 }
 
