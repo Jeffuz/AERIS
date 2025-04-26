@@ -7,7 +7,7 @@ import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
 // Components
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
+// import { ScrollArea } from "@radix-ui/react-scroll-area";
 
 // Icons
 import { GoPerson } from "react-icons/go";
@@ -227,19 +227,17 @@ const TriageTab = () => {
   ]);
 
   return (
-    <div className="h-full flex flex-col">
-      <div>
-        <div className="flex justify-between items-center">
-          <h3 className="text-md font-medium text-white/70">
-            Active Detections
-          </h3>
-          <div className="text-xs bg-[#27272A] px-2 py-1 rounded-md text-white/70">
-            Total: <span className="text-[#648FD4]">{detections.length}</span>
-          </div>
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Header */}
+      <div className="flex justify-between items-center pb-3">
+        <h3 className="text-md font-medium text-white/70">Active Detections</h3>
+        <div className="text-xs bg-[#27272A] px-2 py-1 rounded-md text-white/70">
+          Total: <span className="text-[#648FD4]">{detections.length}</span>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto py-3 space-y-3">
+      {/* Scrollable container */}
+      <div className="flex-1 overflow-y-auto space-y-3 pr-1">
         {detections.map((detection) => (
           <TriageItem key={detection.id} detection={detection} />
         ))}
@@ -265,7 +263,10 @@ const Triage = ({ className }: TriageProps) => {
     <section
       className={`h-full flex flex-col ${className} border-l border-gray-800 p-3`}
     >
-      <Tabs defaultValue="triage" className="h-full flex flex-col">
+      <Tabs
+        defaultValue="triage"
+        className="flex flex-col h-full overflow-hidden"
+      >
         <TabsList className="w-full p-0">
           <TabsTrigger value="triage" className={tabTriggerClass}>
             Triage List
@@ -274,10 +275,10 @@ const Triage = ({ className }: TriageProps) => {
             Agent Logs
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="triage">
+        <TabsContent value="triage" className="flex-1 overflow-hidden">
           <TriageTab />
         </TabsContent>
-        <TabsContent value="agent">
+        <TabsContent value="agent" className="flex-1 overflow-hidden">
           <AgentTab />
         </TabsContent>
       </Tabs>
