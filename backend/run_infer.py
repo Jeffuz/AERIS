@@ -1,49 +1,85 @@
 from ultralytics import YOLO
 import cv2
 import os
+from pathlib import Path
 
-# Load model
-model = YOLO("best.pt")
+ALLOWED_CLASSES = {
+    0: 'flood',
+    1: 'person',
+    2: 'fire',
+    4: 'smoke',
+    5: 'collapsed building',
+    6: 'collapsed road',
+    7: 'collapsed roof',
+    8: 'collapsedhouse',
+    9: 'damaged train',
+    10: 'debri on ground',
+    11: 'house on fire'
+}
 
-# Create output directory
-os.makedirs("outputs", exist_ok=True)
-
-# Open the video file
-video = cv2.VideoCapture("people.mp4")
-
-# Get video properties
-fps = int(video.get(cv2.CAP_PROP_FPS))
-frame_interval = fps * 2  # Get a frame every 2 seconds
-
-frame_count = 0
-saved_count = 0
-
-while video.isOpened():
-    ret, frame = video.read()
-    if not ret:
-        break
+def process_video(model, video_path):
+    video = cv2.VideoCapture(video_path)
+    fps = int(video.get(cv2.CAP_PROP_FPS))
+    frame_interval = fps * 2
+    frame_count = 0
+    saved_count = 0
     
-    # Process every nth frame (n = frame_interval)
-    if frame_count % frame_interval == 0:
-        # Run inference on the frame
-        results = model(frame, conf=0.3)[0]
-        img = frame.copy()
-        issue_count = 1
+    while video.isOpened():
+        ret, frame = video.read()
+        if not ret:
+            break
+        if frame_count % frame_interval == 0:
+            results = model.predict(frame, conf=0.3, save=False, save_txt=False)[0]
+            # Filter only classes
+            filtered_boxes = [box for box in results.boxes if int(box.cls[0]) in ALLOWED_CLASSES]
+            if len(filtered_boxes) > 0:
+                results.boxes = filtered_boxes
+                predicted_frame = results.plot()
+                timestamp = video.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+                cv2.imwrite(f"outputs/detection_{saved_count}_time_{timestamp:.2f}s.jpg", predicted_frame)
+                saved_count += 1
+        frame_count += 1
+    video.release()
+    return saved_count
 
-        for box in results.boxes.data:
-            x1, y1, x2, y2 = map(int, box[:4])
-            conf = float(box[4])
-            if conf > 0.3:
-                label = f"Issue #{issue_count}"
-                cv2.rectangle(img, (x1, y1), (x2, y2), (100, 100, 255), 2)
-                cv2.putText(img, f"{label}", (x1, y1 - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (100, 100, 255), 2)
-                issue_count += 1
-
-        cv2.imwrite(f"outputs/frame_{saved_count}.jpg", img)
-        saved_count += 1
+def process_image(model, image_path):
+    image = cv2.imread(image_path)
+    if image is None:
+        print(f"Error: Could not load image {image_path}")
+        return 0
     
-    frame_count += 1
+    results = model.predict(image, conf=0.3, save=False, save_txt=False)[0]
+    filtered_boxes = [box for box in results.boxes if int(box.cls[0]) in ALLOWED_CLASSES]
+    
+    # Filter only classes
+    if len(filtered_boxes) > 0:
+        results.boxes = filtered_boxes
+        predicted_image = results.plot()
+        output_path = f"outputs/detection_{Path(image_path).stem}.jpg"
+        cv2.imwrite(output_path, predicted_image)
+        return 1
+    return 0
 
-video.release()
-print(f"✅ Done! Processed {saved_count} frames. Check the 'outputs' folder.")
+def process_input(input_path):
+    # Load model and output
+    model = YOLO("best.pt")
+    os.makedirs("outputs", exist_ok=True)
+    
+    file_ext = Path(input_path).suffix.lower()
+    video_extensions = ['.mp4', '.avi', '.mov', '.mkv']
+    image_extensions = ['.jpg', '.jpeg', '.png', '.bmp']
+    
+    if file_ext in video_extensions:
+        saved_count = process_video(model, input_path)
+    elif file_ext in image_extensions:
+        saved_count = process_image(model, input_path)
+    else:
+        print("Unsupported File Type")
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) != 2:
+        print("Needs to be in format: python run_infer.py <path_to_file>")
+    else:
+        process_input(sys.argv[1])
+        

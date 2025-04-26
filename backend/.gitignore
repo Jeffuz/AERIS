@@ -6,3 +6,7 @@ __pycache__
 *.MP4
 *.stl
 *.STL
+*.mov
+*.MOV
+
+outputs
