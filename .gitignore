@@ -1,6 +1,8 @@
 venv
 __pycache__
-node_modules
+frontend/node_modules
+backend/node_modules
+hospitalservice/node_modules
 
 # Files
 *.mp4
