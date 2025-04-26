@@ -12,6 +12,11 @@ python -m venv venv
 .\venv\Scripts\activate
 ```
 
+### Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
 ### Run FastAPI Server
 ```bash
 uvicorn main:app --reload
