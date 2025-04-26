@@ -2,6 +2,7 @@
 
 // Hooks
 import React, { useState } from "react";
+import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
 
 // Components
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,6 +23,12 @@ type Detection = {
   confidence: number;
   timestamp: string;
 };
+
+// Relative time based on detection time stamp
+function getRelativeTime(timestamp: string) {
+  const date = new Date(timestamp);
+  return formatDistanceToNow(date, { addSuffix: true });
+}
 
 // Get Icon + Color for Detection Type
 function getDetectionIcon(type: Detection["type"]) {
@@ -53,6 +60,7 @@ function getDetectionIcon(type: Detection["type"]) {
 
 function TriageItem({ detection }: { detection: Detection }) {
   const iconStyle = getDetectionIcon(detection.type);
+  const relativeTime = getRelativeTime(detection.timestamp);
 
   return (
     <div className="bg-[#09090B] border border-gray-800 rounded-md overflow-hidden hover:border-gray-700 transition-colors group">
@@ -80,7 +88,7 @@ function TriageItem({ detection }: { detection: Detection }) {
               </div>
               {/* Location + Timestamp */}
               <div className="text-xs text-gray-400">
-                {detection.location} • {detection.timestamp}
+                {detection.location} • {relativeTime}
               </div>
             </div>
           </div>
@@ -141,7 +149,7 @@ const TriageTab = () => {
       location: "Sector A3",
       urgency: 9,
       confidence: 92,
-      timestamp: "2025-04-26 09:31:52.698710",
+      timestamp: "2025-04-26 10:31:52.698710",
     },
     {
       id: "D2",
@@ -149,7 +157,7 @@ const TriageTab = () => {
       location: "Sector B2",
       urgency: 10,
       confidence: 88,
-      timestamp: "2025-04-26 09:31:52.698710",
+      timestamp: "2025-04-26 10:58:52.698710",
     },
     {
       id: "D3",
@@ -195,7 +203,7 @@ const Triage = ({ className }: TriageProps) => {
   const tabTriggerClass =
     "data-[state=active]:bg-[#1F1F22] data-[state=active]:text-white data-[state=inactive]:text-gray-500";
 
-  console.log(new Date());
+  // console.log(new Date());
   return (
     <section
       className={`h-full flex flex-col ${className} border-l border-gray-800 p-3`}
