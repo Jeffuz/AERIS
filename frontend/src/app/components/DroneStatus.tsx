@@ -6,6 +6,58 @@ import React, { useState } from "react";
 // Icons
 import { ChevronUp, Wifi, Battery, Eye } from "lucide-react";
 
+type DroneData = {
+  id: string;
+  batteryLevel: number;
+  isActive: boolean;
+  altitude: number;
+  speed: number;
+  status: string;
+};
+
+const mockDrones: DroneData[] = [
+  {
+    id: "DR-001",
+    batteryLevel: 85,
+    isActive: true,
+    altitude: 120,
+    speed: 18,
+    status: "Area scan: Sector A3",
+  },
+  {
+    id: "DR-002",
+    batteryLevel: 45,
+    isActive: true,
+    altitude: 90,
+    speed: 15,
+    status: "Human detection: Sector B2",
+  },
+  {
+    id: "DR-003",
+    batteryLevel: 12,
+    isActive: false,
+    altitude: 60,
+    speed: 22,
+    status: "Returning to base",
+  },
+  {
+    id: "DR-004",
+    batteryLevel: 92,
+    isActive: true,
+    altitude: 150,
+    speed: 25,
+    status: "Fire monitoring: Sector C1",
+  },
+  {
+    id: "DR-005",
+    batteryLevel: 73,
+    isActive: true,
+    altitude: 110,
+    speed: 16,
+    status: "Debris assessment: Sector D4",
+  },
+];
+
 interface DroneStatusCardProps {
   id: string;
   batteryLevel: number;
@@ -89,22 +141,31 @@ interface DroneStatusProps {
 }
 
 const DroneStatus = ({ className }: DroneStatusProps) => {
+  const activeDrones = mockDrones.filter((drone) => drone.isActive).length;
+
   return (
-    <section className={`${className} p-4`}>
+    <section className={`${className} p-4 border-gray-800 border-r`}>
       {/* Header */}
       <div className="flex justify-between items-center pb-4">
         <h3 className="text-lg font-medium text-white/70">Drone Fleet Status</h3>
         <div className="text-md text-white/70">
-          4/7 active
+          <span className="text-[#56B685]">{activeDrones}</span>/{mockDrones.length} active
         </div>
       </div>
-      <DroneStatusCard
-        id="D2"
-        batteryLevel={45}
-        isActive={true}
-        altitude={90}
-        speed={12}
-      />
+
+      <div className="space-y-3">
+        {mockDrones.map((drone) => (
+          <DroneStatusCard
+            key={drone.id}
+            id={drone.id}
+            batteryLevel={drone.batteryLevel}
+            isActive={drone.isActive}
+            altitude={drone.altitude}
+            speed={drone.speed}
+            status={drone.status}
+          />
+        ))}
+      </div>
     </section>
   );
 };
