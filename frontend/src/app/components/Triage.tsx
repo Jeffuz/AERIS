@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
 // Components
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
 
 // Icons
 import { GoPerson } from "react-icons/go";
@@ -118,7 +119,7 @@ function TriageItem({ detection }: { detection: Detection }) {
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 text-xs gap-1 text-gray-400/80 hover:text-gray-400"
+            className="h-6 text-xs gap-1 text-gray-400/80 hover:text-gray-400 hover:cursor-pointer"
           >
             Details
             <FiChevronRight size={12} />
@@ -128,11 +129,11 @@ function TriageItem({ detection }: { detection: Detection }) {
 
       {/* CTA Buttons */}
       <div className="flex border-t border-gray-800">
-        <button className="flex-1 py-1.5 text-xs font-medium hover:bg-[#27272A] text-[#3F896C]">
+        <button className="flex-1 py-1.5 text-xs font-medium hover:bg-[#27272A] text-[#3F896C] hover:cursor-pointer">
           Assign
         </button>
         <div className="w-px bg-gray-800" />
-        <button className="flex-1 py-1.5 text-xs font-medium hover:bg-[#27272A] text-[#648FD4]">
+        <button className="flex-1 py-1.5 text-xs font-medium hover:bg-[#27272A] text-[#648FD4] hover:cursor-pointer">
           Dispatch
         </button>
       </div>
@@ -167,6 +168,62 @@ const TriageTab = () => {
       confidence: 94,
       timestamp: "2025-04-26 09:31:52.698710",
     },
+    {
+      id: "D4",
+      type: "flood",
+      location: "Sector D5",
+      urgency: 7,
+      confidence: 85,
+      timestamp: "2025-04-26 10:45:52.698710",
+    },
+    {
+      id: "D5",
+      type: "debris",
+      location: "Sector B7",
+      urgency: 6,
+      confidence: 79,
+      timestamp: "2025-04-26 10:15:52.698710",
+    },
+    {
+      id: "D6",
+      type: "fire",
+      location: "Sector E2",
+      urgency: 9,
+      confidence: 91,
+      timestamp: "2025-04-26 10:52:52.698710",
+    },
+    // {
+    //   id: "D7",
+    //   type: "flood",
+    //   location: "Sector A1",
+    //   urgency: 8,
+    //   confidence: 87,
+    //   timestamp: "2025-04-26 10:22:52.698710",
+    // },
+    // {
+    //   id: "D8",
+    //   type: "human",
+    //   location: "Sector F4",
+    //   urgency: 10,
+    //   confidence: 96,
+    //   timestamp: "2025-04-26 10:55:52.698710",
+    // },
+    // {
+    //   id: "D9",
+    //   type: "debris",
+    //   location: "Sector C6",
+    //   urgency: 5,
+    //   confidence: 82,
+    //   timestamp: "2025-04-26 10:41:52.698710",
+    // },
+    // {
+    //   id: "D10",
+    //   type: "fire",
+    //   location: "Sector G3",
+    //   urgency: 9,
+    //   confidence: 89,
+    //   timestamp: "2025-04-26 10:48:52.698710",
+    // },
   ]);
 
   return (
