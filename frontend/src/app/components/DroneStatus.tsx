@@ -67,6 +67,13 @@ interface DroneStatusCardProps {
   status?: string;
 }
 
+// Drone Battery Color
+function getBatteryColor(level: number): string {
+  if (level >= 50) return "#56B685"; // Full to low (50-100%)
+  if (level >= 20) return "#AF6526"; // Low to critical (20-49%)
+  return "#8A3836"; // Critical to none (0-19%)
+}
+
 function DroneStatusCard({
   id,
   batteryLevel,
@@ -75,6 +82,7 @@ function DroneStatusCard({
   speed = 18,
 }: DroneStatusCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const batteryColor = getBatteryColor(batteryLevel);
 
   return (
     <div className="w-full">
@@ -93,7 +101,7 @@ function DroneStatusCard({
             <div className="font-medium text-white/70">Target: {id}</div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 text-[#56B685]">
+            <div className="flex items-center gap-1" style={{ color: batteryColor }}>
               <Battery className="w-4 h-4" />
               <span className="text-sm">{batteryLevel}%</span>
             </div>
