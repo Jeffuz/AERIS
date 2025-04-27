@@ -1,0 +1,13 @@
+venv
+__pycache__
+.env
+
+# Files
+*.mp4
+*.MP4
+*.stl
+*.STL
+*.mov
+*.MOV
+
+outputs
