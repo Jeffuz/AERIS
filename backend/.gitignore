@@ -9,5 +9,10 @@ __pycache__
 *.STL
 *.mov
 *.MOV
+*.jpeg
+*.JPEG
 
 outputs
+recordings
+temp
+best_new.pt

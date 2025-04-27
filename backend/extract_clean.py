@@ -25,8 +25,8 @@ def main():
         sys.exit(2)
 
     stl_path = mp4.with_suffix(".stl")
-    extract_subtitles(mp4, stl_path)
-    print(f"Subtitles written to: {stl_path}")
+    extract_subtitles(mp4, f"temp/{stl_path}")
+    print(f"Subtitles written to: temp/{stl_path}")
 
 if __name__ == "__main__":
     main()
