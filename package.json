@@ -1,0 +1,35 @@
+{
+  "name": "aeris",
+  "version": "1.0.0",
+  "description": "",
+  "main": "hello.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jeffuz/AERIS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Jeffuz/AERIS/issues"
+  },
+  "homepage": "https://github.com/Jeffuz/AERIS#readme",
+  "dependencies": {
+    "@dainprotocol/service-sdk": "^1.1.14",
+    "@google/genai": "^0.10.0",
+    "@supabase/supabase-js": "^2.49.4",
+    "@types/node": "^22.15.2",
+    "dotenv": "^16.5.0",
+    "twilio": "^5.5.2",
+    "typescript": "^5.8.3",
+    "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2"
+  }
+}
