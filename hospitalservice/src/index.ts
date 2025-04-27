@@ -14,56 +14,31 @@ const twilioCallerNumber = "+18666916450";
 const twilioVoiceUrl = "https://fallow-salamander-9631.twil.io/assets/audio3459472596.m4a";
 const port = Number(process.env.PORT) || 3030;
 
-// --- Hospital database ---
-const HOSPITALS = [
-  {
-    name: "UCLA Medical Center",
-    latitude: 34.0656,
-    longitude: -118.4468,
-    phone: "+17209087740",
-  },
-  {
-    name: "Cedars-Sinai Medical Center",
-    latitude: 34.0752,
-    longitude: -118.3804,
-    phone: "+17209087740",
-  },
-  {
-    name: "LAC+USC Medical Center",
-    latitude: 34.0605,
-    longitude: -118.2110,
-    phone: "+17209087740",
-  },
-];
 
-// calculate distance between two lat/lon 
-function haversineDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-): number {
+const GOOGLE_API_KEY = "AIzaSyDAug4Znn8xVPiwjRkRAg5IguT_f1Vb6pc";
+
+// Haversine formula
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const toRad = (value: number) => (value * Math.PI) / 180;
-  const R = 6371; // Earth radius in km
+  const R = 6371; // km
 
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
 
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) ** 2;
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) ** 2;
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
 
-//  Tool Config: Find and Call Closest Hospital
+// latitude:
+// Tool Config
 const findAndCallHospitalConfig: ToolConfig = {
   id: "find-and-call-hospital",
   name: "Find and Call Hospital",
-  description: "Finds the closest hospital based on location and calls it",
+  description: "Finds the closest hospital using Google Maps API and calls it (skipping hospitals with no phone number)",
   input: z
     .object({
       latitude: z.number().describe("User's latitude coordinate"),
@@ -83,36 +58,81 @@ const findAndCallHospitalConfig: ToolConfig = {
       `User / Agent ${agentInfo.id} requested nearest hospital at (${latitude}, ${longitude})`
     );
 
-    // Find closest hospital
-    let closestHospital = null;
-    let minDistance = Infinity;
 
-    for (const hospital of HOSPITALS) {
-      const distance = haversineDistance(
+    const placesResponse = await axios.get(
+      'https://maps.googleapis.com/maps/api/place/nearbysearch/json',
+      {
+        params: {
+          location: `${latitude},${longitude}`,
+          radius: 10000, // 10 km
+          type: "hospital",
+          key: GOOGLE_API_KEY,
+        },
+      }
+    );
+
+    const hospitals = placesResponse.data.results;
+    if (!hospitals.length) {
+      throw new Error("No hospitals found nearby.");
+    }
+
+    console.log(`Found ${hospitals.length} hospitals nearby.`);
+
+
+    let chosenHospital: any = null;
+    let hospitalPhone: string | null = null;
+    let hospitalDistanceKm: number = 0;
+
+    for (const hospital of hospitals) {
+      const hospitalLocation = hospital.geometry.location;
+      const hospitalName = hospital.name;
+      const placeId = hospital.place_id;
+
+      hospitalDistanceKm = haversineDistance(
         latitude,
         longitude,
-        hospital.latitude,
-        hospital.longitude
+        hospitalLocation.lat,
+        hospitalLocation.lng
       );
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestHospital = hospital;
+
+      console.log(`Checking hospital: ${hospitalName} (${hospitalDistanceKm.toFixed(2)} km)`);
+
+      // Fetch hospital details
+      const detailsResponse = await axios.get(
+        `https://maps.googleapis.com/maps/api/place/details/json`,
+        {
+          params: {
+            place_id: placeId,
+            fields: "name,formatted_phone_number",
+            key: GOOGLE_API_KEY,
+          },
+        }
+      );
+
+      hospitalPhone = detailsResponse.data.result?.formatted_phone_number;
+      
+      if (hospitalPhone) {
+        chosenHospital = {
+          name: hospitalName,
+          location: hospitalLocation,
+          phone: hospitalPhone,
+        };
+        console.log(`Found hospital with phone: ${hospitalName} - ${hospitalPhone}`);
+        break; // stop loop
+      } else {
+        console.log(`Skipping ${hospitalName} (no phone number).`);
       }
     }
 
-    if (!closestHospital) {
-      throw new Error("No hospital found nearby.");
+    if (!chosenHospital) {
+      throw new Error("No reachable hospitals found with a phone number.");
     }
 
-    console.log(
-      `Closest hospital: ${closestHospital.name} (${minDistance.toFixed(2)} km)`
-    );
-
-    // === CALL hospital with TWILIO ===
+    
     try {
       const call = await twilioClient.calls.create({
         from: twilioCallerNumber,
-        to: closestHospital.phone,
+        to: "+17209087740",
         url: twilioVoiceUrl,
       });
       console.log(`Twilio call SID: ${call.sid}`);
@@ -121,46 +141,42 @@ const findAndCallHospitalConfig: ToolConfig = {
     }
 
     return {
-      text: `Calling ${closestHospital.name}... 📞`,
+      text: `Calling ${chosenHospital.name}... 📞`,
       data: {
-        hospitalName: closestHospital.name,
-        hospitalPhone: closestHospital.phone,
-        distanceKm: Number(minDistance.toFixed(2)),
+        hospitalName: chosenHospital.name,
+        hospitalPhone: chosenHospital.phone,
+        distanceKm: Number(hospitalDistanceKm.toFixed(2)),
       },
       ui: new CardUIBuilder()
         .setRenderMode("page")
-        .title(`Hospital Contact: ${closestHospital.name}`)
+        .title(`Hospital Contact: ${chosenHospital.name}`)
         .addChild(
           new MapUIBuilder()
-            .setInitialView(
-              closestHospital.latitude,
-              closestHospital.longitude,
-              13
-            )
+            .setInitialView(chosenHospital.location.lat, chosenHospital.location.lng, 13)
             .addMarkers([
               {
-                latitude: closestHospital.latitude,
-                longitude: closestHospital.longitude,
-                title: closestHospital.name,
-                description: `Phone: ${closestHospital.phone}`,
-                text: `${closestHospital.name}`,
+                latitude: chosenHospital.location.lat,
+                longitude: chosenHospital.location.lng,
+                title: chosenHospital.name,
+                description: `Phone: ${chosenHospital.phone}`,
+                text: `${chosenHospital.name}`,
               },
             ])
             .build()
         )
         .content(
-          `📍 Distance: ${minDistance.toFixed(2)} km\n📞 Phone: ${closestHospital.phone}`
+          `📍 Distance: ${hospitalDistanceKm.toFixed(2)} km\n📞 Phone: ${chosenHospital.phone}`
         )
         .build(),
     };
-  }
+  },
 };
 
 // Define the Service
 const dainService: DAINService = defineDAINService({
   metadata: {
-    title: "Hospital Finder Service",
-    description: "A DAIN service that finds the nearest hospital and calls it automatically.",
+    title: "Hospital Finder Service (Smart)",
+    description: "Finds the closest reachable hospital via Google Maps and calls it with Twilio",
     version: "1.0.0",
     author: "Your Name",
     tags: ["hospital", "emergency", "call", "dain"],
@@ -169,13 +185,13 @@ const dainService: DAINService = defineDAINService({
   exampleQueries: [
     {
       category: "Emergency",
-      queries: ["Find nearest hospital", "Call closest hospital"]
+      queries: ["Find nearest hospital", "Call reachable hospital"]
     }
   ],
   identity: {
-    apiKey: process.env.DAIN_API_KEY
+    apiKey: process.env.DAIN_API_KEY,
   },
-  tools: [findAndCallHospitalConfig]
+  tools: [findAndCallHospitalConfig],
 });
 
 dainService.startNode({ port }).then(({ address }) => {
