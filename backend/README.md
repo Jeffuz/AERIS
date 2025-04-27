@@ -2,14 +2,20 @@
 
 ## Setup
 
-### Create virtual enviornment
+### Create virtual environment
 ```bash
 python -m venv venv
 ```
 
-### Activate the virtual enviornment
+### Activate the virtual environment
+#### Windows
 ```bash
 .\venv\Scripts\activate
+```
+
+#### macOS/Linux
+```bash
+source venv/bin/activate
 ```
 
 ### Install dependencies

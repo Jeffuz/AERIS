@@ -1,0 +1,15 @@
+venv
+__pycache__
+frontend/node_modules
+backend/node_modules
+hospitalservice/node_modules
+
+# Files
+*.mp4
+*.MP4
+*.stl
+*.STL
+*.mov
+*.MOV
+
+outputs
