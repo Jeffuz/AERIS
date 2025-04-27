@@ -21,9 +21,11 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+type DetectionType = "person" | "fire" | "flood" | "debris";
+
 type Detection = {
   id: string;
-  type: string;
+  type: DetectionType;
   location: string;
   urgency: number;
   confidence: number;
@@ -36,8 +38,10 @@ function getRelativeTime(timestamp: string) {
   return formatDistanceToNow(date, { addSuffix: true });
 }
 
-// Get Icon + Color for Detection Type
-function getDetectionIcon(type: Detection["type"]) {
+// Update getDetectionIcon function
+function getDetectionIcon(type: string) {
+  const mappedType = type.toLowerCase().trim();
+
   const icons = {
     person: {
       icon: <GoPerson size={16} />,
@@ -59,10 +63,15 @@ function getDetectionIcon(type: Detection["type"]) {
       bg: "#2C2B2A",
       color: "#8B7355",
     },
-  };
+  } as const;
 
-  const style = icons[type as keyof typeof icons] ?? icons.person;
-  return style;
+  
+  if (Object.keys(icons).includes(mappedType)) {
+    console.log('Found matching icon for:', mappedType);
+    return icons[mappedType as keyof typeof icons];
+  }
+
+  return icons.debris;
 }
 
 function TriageItem({ detection }: { detection: Detection }) {
@@ -151,6 +160,7 @@ const TriageTab = () => {
   // @TODO: Fetch backend tagged drone data
   const [detections, setDetections] = useState<Detection[]>([]);
 
+  // Update the data mapping in useEffect
   useEffect(() => {
     async function fetchDetections() {
       try {
@@ -161,12 +171,12 @@ const TriageTab = () => {
 
         if (error) throw error;
 
-        // Map Supabase data to Detection type
         const mappedData: Detection[] = data.map((item) => ({
           id: item.id.toString(),
-          type: item.type,
+          // Map the type directly from database
+          type: (item.type?.toLowerCase() || "debris") as DetectionType,
           location: `Sector ${item.lat.toFixed(4)}, ${item.lon.toFixed(4)}`,
-          urgency: item.level,
+          urgency: item.level || 5,
           confidence: 90,
           timestamp: item.created_at,
         }));
