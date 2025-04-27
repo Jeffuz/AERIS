@@ -3,6 +3,8 @@ __pycache__
 frontend/node_modules
 backend/node_modules
 hospitalservice/node_modules
+reportservice/node_modules
+node_modules
 
 # Files
 *.mp4
@@ -13,3 +15,7 @@ hospitalservice/node_modules
 *.MOV
 
 outputs
+
+scripts/
+
+.env
