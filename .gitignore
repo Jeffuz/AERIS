@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 venv
 __pycache__
 frontend/node_modules
@@ -19,3 +20,7 @@ outputs
 scripts/
 
 .env
+=======
+quick-groq/venv/
+quick-groq/.env
+>>>>>>> Stashed changes

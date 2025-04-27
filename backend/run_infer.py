@@ -32,9 +32,8 @@ ALLOWED_CLASSES = {
     11: 'house on fire'
 }
 
-def victim_triage(encoded_image):
+triage_prompt = """
 
-    prompt = """
     You are a medical image analyzer. Analyze the following medical image and provide an assessment of the victim's condition based off the triage framework:
     
     RED: Patients who have life-threatening injuries that are treatable with a minimum amount of time, personnel, and supplies. These patients also have a good chance of recovery.
@@ -43,9 +42,15 @@ def victim_triage(encoded_image):
     BLUE: Patients who have injuries requiring extensive treatment that exceeds the medical resources available in the situation or for whom life support is considered futile.
     BLACK: Patients who are in cardiac arrest and for which resuscitation efforts are not going to be provided.
 
+"""
+
+def victim_triage(encoded_image):
+
+    prompt = f"""{triage_prompt}
+
     There are sometimes errors, if the image does not contain a person classify as NULL.
 
-    For testing purposes, if the person is CROSSING THEIR ARMS, classify them as RED. If the person HAS THEIR HANDS ON THEIR HEADS, ignore the triage system and classify them as FIRE.
+    For testing purposes, if the person is CROSSING THEIR ARMS, ignore the triage system and classify them as RED. If the person HAS THEIR HANDS ON THEIR HEADS, ignore the triage system and classify them as FIRE.
 
     Please provide ONLY the 30 word analysis of the image with no other strings. Then seperate the analysis with a === and place ONLY the triage ranking with no punctuation.    
     """
@@ -68,16 +73,10 @@ def victim_triage(encoded_image):
         "description": response.choices[0].message.content.split("===")[0]
     }
 
+
 def image_description(encoded_image):
     
-    prompt = """
-    You are a medical image analyzer. Analyze the following medical image and provide an assessment of the victim's condition based off the triage framework:
-    
-    RED: Patients who have life-threatening injuries that are treatable with a minimum amount of time, personnel, and supplies. These patients also have a good chance of recovery.
-    YELLOW: Indicates that treatment may be delayed for a limited period of time without significant mortality or in the ICU setting patients for whom life support may or may not change their outcome given the severity of their illness.
-    GREEN: Patients with minor injuries whose treatment may be delayed until the patients in the other categories have been dealt with or patients who do not require ICU admission for the provision of life support.
-    BLUE: Patients who have injuries requiring extensive treatment that exceeds the medical resources available in the situation or for whom life support is considered futile.
-    BLACK: Patients who are in cardiac arrest and for which resuscitation efforts are not going to be provided.
+    prompt = f"""{triage_prompt}
 
     Please provide a maximum 80 word analysis of the image with people's triage classifications. Include no other strings. Do not mention the classification color in your analysis.  
     """
@@ -98,17 +97,9 @@ def image_description(encoded_image):
     return response.choices[0].message.content
     
 
-def adjust_brightness(frame, brightness=1.2, contrast=1.4):
-    # Ensure frame is a numpy array
-    if frame is None:
-        return None
-    # Adjust brightness and contrast
-    adjusted = cv2.convertScaleAbs(frame, alpha=contrast, beta=brightness * 50)
-    return adjusted
-
 def process_frame(frame, csv_path, frame_count, model=YOLO("best_old.pt")):
         
-    # frame = adjust_brightness(frame)
+    # frame = cv2.convertScaleAbs(frame, alpha=1.4, beta=1.2 * 50)
 
     os.makedirs("outputs", exist_ok=True)
 
@@ -121,9 +112,8 @@ def process_frame(frame, csv_path, frame_count, model=YOLO("best_old.pt")):
         results.boxes = person_boxes
         predicted_frame = results.plot()
 
-        df = pd.read_csv(csv_path)
-        timestamp = int(frame_count / 60)
-        print(timestamp)
+        df = pd.read_csv(f"temp/{csv_path}")
+        timestamp = int(frame_count / 30)
         gps_lat = df.loc[df['start_seconds'] == timestamp, 'gps_lat'].iloc[0]
         gps_lon = df.loc[df['start_seconds'] == timestamp, 'gps_lon'].iloc[0]
 
