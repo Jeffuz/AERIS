@@ -2,11 +2,8 @@
 
 import { z } from "zod";
 import axios from "axios";
-import { defineDAINService, ToolConfig } from "@dainprotocol/service-sdk";
+import { defineDAINService, ToolConfig, AgentInfo, type DAINService } from "@dainprotocol/service-sdk";
 import { CardUIBuilder, MapUIBuilder } from "@dainprotocol/utils";
-
-
-
 import twilio from "twilio";
 
 const accountSid = "ACdde7b682cc5da97f66cb162782b3f453";
@@ -14,11 +11,7 @@ const authToken = "c467efd7ec600dc798435d3324cf9a69";
 const twilioClient = twilio(accountSid, authToken);
 
 const twilioCallerNumber = "+18666916450"; 
-
-const twilioVoiceUrl = "http://demo.twilio.com/docs/voice.xml";
-
-
-
+const twilioVoiceUrl = "https://fallow-salamander-9631.twil.io/assets/audio3459472596.m4a";
 const port = Number(process.env.PORT) || 3030;
 
 // --- Hospital database ---
@@ -43,7 +36,7 @@ const HOSPITALS = [
   },
 ];
 
-// --- Utility to calculate distance between two lat/lon ---
+// calculate distance between two lat/lon 
 function haversineDistance(
   lat1: number,
   lon1: number,
@@ -66,7 +59,7 @@ function haversineDistance(
   return R * c;
 }
 
-// --- Tool Config: Find and Call Closest Hospital ---
+//  Tool Config: Find and Call Closest Hospital
 const findAndCallHospitalConfig: ToolConfig = {
   id: "find-and-call-hospital",
   name: "Find and Call Hospital",
@@ -115,14 +108,16 @@ const findAndCallHospitalConfig: ToolConfig = {
       `Closest hospital: ${closestHospital.name} (${minDistance.toFixed(2)} km)`
     );
 
-    // --- Call the hospital (fake API endpoint here) ---
+    // === CALL hospital with TWILIO ===
     try {
-      await axios.post("https://your-caller-api.com/call", {
+      const call = await twilioClient.calls.create({
+        from: twilioCallerNumber,
         to: closestHospital.phone,
+        url: twilioVoiceUrl,
       });
-      console.log(`Initiated call to ${closestHospital.phone}`);
+      console.log(`Twilio call SID: ${call.sid}`);
     } catch (error) {
-      console.error("Failed to initiate call", error);
+      console.error("Failed to initiate Twilio call", error);
     }
 
     return {
@@ -148,7 +143,7 @@ const findAndCallHospitalConfig: ToolConfig = {
                 longitude: closestHospital.longitude,
                 title: closestHospital.name,
                 description: `Phone: ${closestHospital.phone}`,
-                text: `${closestHospital.name}`, 
+                text: `${closestHospital.name}`,
               },
             ])
             .build()
@@ -158,30 +153,29 @@ const findAndCallHospitalConfig: ToolConfig = {
         )
         .build(),
     };
-  },
+  }
 };
 
-// --- Define the Service ---
-const dainService = defineDAINService({
+// Define the Service
+const dainService: DAINService = defineDAINService({
   metadata: {
     title: "Hospital Finder Service",
-    description:
-      "A DAIN service that finds the nearest hospital and calls it automatically.",
+    description: "A DAIN service that finds the nearest hospital and calls it automatically.",
     version: "1.0.0",
     author: "Your Name",
     tags: ["hospital", "emergency", "call", "dain"],
-    logo: "https://cdn-icons-png.flaticon.com/512/3062/3062634.png",
+    logo: "https://cdn-icons-png.flaticon.com/512/3062/3062634.png"
   },
   exampleQueries: [
     {
       category: "Emergency",
-      queries: ["Find nearest hospital", "Call closest hospital"],
-    },
+      queries: ["Find nearest hospital", "Call closest hospital"]
+    }
   ],
   identity: {
-    apiKey: process.env.DAIN_API_KEY,
+    apiKey: process.env.DAIN_API_KEY
   },
-  tools: [findAndCallHospitalConfig],
+  tools: [findAndCallHospitalConfig]
 });
 
 dainService.startNode({ port }).then(({ address }) => {
