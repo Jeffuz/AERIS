@@ -4,7 +4,7 @@ import { MapContainer, TileLayer } from "react-leaflet";
 import type { LatLngTuple } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-const position: LatLngTuple = [51.505, -0.09];
+const position: LatLngTuple = [34.071, -118.4453];  
 
 const MapComponent = () => {
   return (

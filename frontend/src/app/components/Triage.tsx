@@ -1,7 +1,8 @@
 "use client";
+import { createClient } from "@supabase/supabase-js";
 
 // Hooks
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
 
 // Components
@@ -16,9 +17,13 @@ import { FiChevronRight } from "react-icons/fi";
 import { FaWater } from "react-icons/fa";
 import { GiFallingRocks } from "react-icons/gi";
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 type Detection = {
   id: string;
-  type: "human" | "fire" | "debris" | "flood";
+  type: string;
   location: string;
   urgency: number;
   confidence: number;
@@ -34,7 +39,7 @@ function getRelativeTime(timestamp: string) {
 // Get Icon + Color for Detection Type
 function getDetectionIcon(type: Detection["type"]) {
   const icons = {
-    human: {
+    person: {
       icon: <GoPerson size={16} />,
       bg: "#261938",
       color: "#7743b7",
@@ -56,7 +61,8 @@ function getDetectionIcon(type: Detection["type"]) {
     },
   };
 
-  return icons[type];
+  const style = icons[type as keyof typeof icons] ?? icons.person;
+  return style;
 }
 
 function TriageItem({ detection }: { detection: Detection }) {
@@ -143,88 +149,36 @@ function TriageItem({ detection }: { detection: Detection }) {
 
 const TriageTab = () => {
   // @TODO: Fetch backend tagged drone data
-  const [detections] = useState<Detection[]>([
-    {
-      id: "D1",
-      type: "human",
-      location: "Sector A3",
-      urgency: 9,
-      confidence: 92,
-      timestamp: "2025-04-26 10:31:52.698710",
-    },
-    {
-      id: "D2",
-      type: "fire",
-      location: "Sector B2",
-      urgency: 10,
-      confidence: 88,
-      timestamp: "2025-04-26 10:58:52.698710",
-    },
-    {
-      id: "D3",
-      type: "human",
-      location: "Sector C1",
-      urgency: 8,
-      confidence: 94,
-      timestamp: "2025-04-26 09:31:52.698710",
-    },
-    {
-      id: "D4",
-      type: "flood",
-      location: "Sector D5",
-      urgency: 7,
-      confidence: 85,
-      timestamp: "2025-04-26 10:45:52.698710",
-    },
-    {
-      id: "D5",
-      type: "debris",
-      location: "Sector B7",
-      urgency: 6,
-      confidence: 79,
-      timestamp: "2025-04-26 10:15:52.698710",
-    },
-    {
-      id: "D6",
-      type: "fire",
-      location: "Sector E2",
-      urgency: 9,
-      confidence: 91,
-      timestamp: "2025-04-26 10:52:52.698710",
-    },
-    // {
-    //   id: "D7",
-    //   type: "flood",
-    //   location: "Sector A1",
-    //   urgency: 8,
-    //   confidence: 87,
-    //   timestamp: "2025-04-26 10:22:52.698710",
-    // },
-    // {
-    //   id: "D8",
-    //   type: "human",
-    //   location: "Sector F4",
-    //   urgency: 10,
-    //   confidence: 96,
-    //   timestamp: "2025-04-26 10:55:52.698710",
-    // },
-    // {
-    //   id: "D9",
-    //   type: "debris",
-    //   location: "Sector C6",
-    //   urgency: 5,
-    //   confidence: 82,
-    //   timestamp: "2025-04-26 10:41:52.698710",
-    // },
-    // {
-    //   id: "D10",
-    //   type: "fire",
-    //   location: "Sector G3",
-    //   urgency: 9,
-    //   confidence: 89,
-    //   timestamp: "2025-04-26 10:48:52.698710",
-    // },
-  ]);
+  const [detections, setDetections] = useState<Detection[]>([]);
+
+  useEffect(() => {
+    async function fetchDetections() {
+      try {
+        const { data, error } = await supabase
+          .from("images")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        // Map Supabase data to Detection type
+        const mappedData: Detection[] = data.map((item) => ({
+          id: item.id.toString(),
+          type: item.type,
+          location: `Sector ${item.lat.toFixed(4)}, ${item.lon.toFixed(4)}`,
+          urgency: item.level,
+          confidence: 90,
+          timestamp: item.created_at,
+        }));
+
+        setDetections(mappedData);
+      } catch (err) {
+        console.error("Error fetching detections:", err);
+      }
+    }
+
+    fetchDetections();
+  }, []);
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -271,9 +225,9 @@ const Triage = ({ className }: TriageProps) => {
           <TabsTrigger value="triage" className={tabTriggerClass}>
             Triage List
           </TabsTrigger>
-          <TabsTrigger value="agent" className={tabTriggerClass}>
+          {/* <TabsTrigger value="agent" className={tabTriggerClass}>
             Agent Logs
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
         <TabsContent value="triage" className="flex-1 overflow-hidden">
           <TriageTab />
